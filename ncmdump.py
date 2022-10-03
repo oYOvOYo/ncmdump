@@ -14,12 +14,12 @@ def dump(file_path):
     #十六进制转字符串
     core_key = binascii.a2b_hex("687A4852416D736F356B496E62617857")
     meta_key = binascii.a2b_hex("2331346C6A6B5F215C5D2630553C2728")
-    unpad = lambda s: s[0:-(s[-1] if type(s[-1]) == int else ord(s[-1]))]
+    def unpad(s): return s[0:-(s[-1] if type(s[-1]) == int else ord(s[-1]))]
     f = open(file_path, 'rb')
     header = f.read(8)
     #字符串转十六进制
     assert binascii.b2a_hex(header) == b'4354454e4644414d'
-    f.seek(2,1)
+    f.seek(2, 1)
     key_length = f.read(4)
     key_length = struct.unpack('<I', bytes(key_length))[0]
     key_data = f.read(key_length)
@@ -61,7 +61,8 @@ def dump(file_path):
     image_size = f.read(4)
     image_size = struct.unpack('<I', bytes(image_size))[0]
     image_data = f.read(image_size)
-    file_name = f.name.split("/")[-1].split(".ncm")[0] + '.' + meta_data['format']
+    file_name = f.name.split(
+        "/")[-1].split(".ncm")[0] + '.' + meta_data['format']
     m = open(os.path.join(os.path.split(file_path)[0], file_name), 'wb')
     chunk = bytearray()
     while True:
@@ -71,7 +72,8 @@ def dump(file_path):
             break
         for i in range(1, chunk_length+1):
             j = i & 0xff
-            chunk[i-1] ^= key_box[(key_box[j] + key_box[(key_box[j] + j) & 0xff]) & 0xff]
+            chunk[i-1] ^= key_box[(key_box[j] +
+                                   key_box[(key_box[j] + j) & 0xff]) & 0xff]
         m.write(chunk)
     m.close()
     f.close()
@@ -79,7 +81,10 @@ def dump(file_path):
 
 
 if __name__ == '__main__':
-    file_list = ['陈芳语 - 爱你.ncm', '李翊君 - 雨蝶.ncm']
+    FOLDER_PATH = "/Users/jskyzero/Library/"
+    file_list = os.listdir(FOLDER_PATH)
     for file in file_list:
-        filepath = "F:\CloudMusic\\"+file
-        dump(filepath)
+        if file.endswith(".ncm"):
+            filepath = FOLDER_PATH+"/"+file
+            dump(filepath)
+            print(file)
